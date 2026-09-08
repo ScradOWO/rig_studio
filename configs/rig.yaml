@@ -1,0 +1,115 @@
+# Authoritative rig config for rig-studio. Values ported from
+# flir_camera_helper_c.cpp (MEX) and record_cameras_show_stimulus.m.
+rig:
+  name: dragstrip_6cam
+  gentl_cti: 'C:\Program Files\Teledyne\Spinnaker\cti64\vs2015\Spinnaker_GenTL_v140.cti'
+  backend: spinnaker             # spinnaker | harvesters | sim
+
+backend:
+  frame_metadata_nodes:          # GenICam chunk nodes read per frame
+    frame_id: ChunkFrameCounter
+    timestamp_ns: ChunkTimestamp
+    exposure_us: ChunkExposureTime
+
+cameras:
+  # false = Connect adopts the cameras' current (SpinView) imaging settings
+  # as-is and only configures trigger/stream/chunks; the table below is then
+  # applied only via the "Load rig preset" button.
+  apply_profile_on_connect: false
+  # roiCrops (user, 2026-08-18): [offset_x, offset_y, width, height] in the
+  # Mode2 (vertical-binning-2) 1024x1024 coordinate space.
+  positions:
+    - {position: 0, serial: '22246592', label: top0,  roi: {width: 704,  height: 800, offset_x: 160, offset_y: 112}, output_root: 'D:/h5_rec_cam0', video_mode: Mode2}
+    - {position: 1, serial: '22246599', label: top1,  roi: {width: 704,  height: 800, offset_x: 160, offset_y: 112}, output_root: 'C:/h5_rec_cam1', video_mode: Mode2}
+    - {position: 2, serial: '22065066', label: top2,  roi: {width: 704,  height: 800, offset_x: 160, offset_y: 112}, output_root: 'D:/h5_rec_cam2', video_mode: Mode2}
+    - {position: 3, serial: '22246605', label: top3,  roi: {width: 704,  height: 800, offset_x: 160, offset_y: 112}, output_root: 'C:/h5_rec_cam3', video_mode: Mode2}
+    - {position: 4, serial: '22246594', label: sideB, roi: {width: 1024, height: 704, offset_x: 0,   offset_y: 160}, output_root: 'D:/h5_rec_cam4', video_mode: Mode2}
+    - {position: 5, serial: '22246585', label: sideA, roi: {width: 1024, height: 704, offset_x: 0,   offset_y: 160}, output_root: 'C:/h5_rec_cam5', video_mode: Mode2}
+  defaults:
+    pixel_format: Mono8
+    binning: {horizontal: 1, vertical: 1}
+    exposure: {auto: 'Off', mode: Timed, time_us: 5000.0}
+    gain: {auto: 'Off', db: 9.8}
+    gamma_enabled: false
+    # line_debouncer_raw: trigger lines ring — without a debouncer each pulse's
+    # falling-edge undershoot fires a SECOND frame whenever the sensor is idle
+    # (measured 2026-08-20: 40 fps at a 20 Hz clock; 1000 -> exactly 20 fps).
+    # Invisible at 178 Hz only because the sensor has no headroom there.
+    # Keep debounce < the trigger high-time (duty 0.5 at 313 Hz = 1.6 ms, ok).
+    trigger: {selector: FrameStart, source: Line0, activation: RisingEdge, overlap: ReadOut,
+              line_debouncer_raw: 1000}
+    stream: {buffer_count_mode: Manual, buffer_count_max: 512, handling_mode: OldestFirst}
+    device_link_throughput_limit: 419430400   # 400 MiB/s
+    chunk_selectors: [FrameCounter, Timestamp, ExposureTime]
+  quirks:
+    gamma_canary_serial: '22246599'
+    min_fetch_timeout_s: 0.05
+    trigger_selectors_both: [FrameStart, ExposureActive]
+
+recording:
+  default_positions: [0, 1, 2, 3, 4, 5]  # files are created only for these cameras
+  fps_nominal: 178.0
+  max_frames_overhead: 1000       # maxF = ceil(dur*fps) + overhead
+  chunk_frames: 32
+  compression: {enabled: false, zstd_level: 3}   # MEX baseline was uncompressed
+  gate_delay_s: 2.0
+  preroll_s: 0.5
+  session_tag_format: '%Y%m%d_%H%M%S'
+  filename_template: '{base}_cam{position}.h5'
+  pool_seconds: 2.0               # bounded RAM shock absorber; writer stays streaming
+  queue_cap: 512                  # ~2.9 s at 178 Hz, not a multi-GB hidden backlog
+  drop_log_every: 500
+
+trigger:
+  ownership: app                  # app | external (WaveForms GUI)
+  sdk_dir: 'C:\Program Files (x86)\Digilent\WaveFormsSDK'
+  waveforms_exe: 'C:\Program Files (x86)\Digilent\WaveForms3\WaveForms.exe'
+  fps: 120.0                    # experiment standard (concurrent ceiling at current crops)
+  duty: 0.5
+  channels_by_position: [0, 3, 6, 4, 7, 2]   # DIO 24,27,30,28,31,26 for cams 0..5
+
+stimulus:
+  projector: {width: 1920, height: 1080, refresh_hz: 240, name_hint: GamePix}
+  grating:
+    period_px: 157.5            # = 20.0 mm on the tank (7.858 px/mm axial scale)
+    speed_px_s: 78.6            # = 1.00 cm/s on the tank (placement_rig canvas scale);
+                                # old MATLAB 120 px/s was 1.53 cm/s
+    direction: 1                  # +1 | -1
+    contrast: 1.0
+    rotation_deg: 0.0
+    smoothstep_edges: [-0.2, 0.2] # PTB SquareWaveShader hardening window
+    region: {preset: bottomhalf, custom_rect: [0, 540, 1920, 1080]}
+  circles:                      # pulsing black ellipses on the tank side walls
+    enabled: false              # GUI checkbox overrides per run
+    ass_path: circles.ass       # operator-placed in Aegisub (squish = perspective
+                                # correction for the curved wall — preserved as-is)
+    cycle_s: 2.0                # grow/shrink period; rows are synced sawtooth
+    expand_row: top             # this wall row enlarges point->full; other contracts
+    soft_px: 5.0                # edge width; 5 matches grating bar edges, 0.5 = hard
+    size_top: 1.0               # per-wall circle size (rects never resize)
+    size_bottom: 1.0
+    nth_top: 1                  # keep every Nth circle (2 = alternate)
+    nth_bottom: 1
+    pulse: true                 # false = shapes static at placed size
+    style: fill                 # fill = opaque shapes over grating;
+                                # window = grating shows only inside shapes
+    colors_from_ass: true       # false = the two row colors below apply
+    color_top: '#000000'       # top wall circles
+    color_bottom: '#000000'     # bottom wall circles
+    window_bg: '#636363'        # flat color around windows (style: window)
+  baseline_s: 2.0
+  grating_s: 25.0
+  log_format: mat
+
+safety:
+  snapshot_dir: state/snapshots
+  marker_path: state/ACTIVE_RIG_SESSION.json
+  exposure_tolerance_us: 25.0     # GS3 quantizes exposure to row times
+
+gui:
+  default_use_positions: [0, 1, 2, 3, 4, 5]  # workers opened on Connect
+  default_view_positions: [0, 1, 2, 3, 4, 5] # live tiles shown initially
+  preview_hz: 30.0
+  preview_decimate: 2
+  grid: {rows: 3, cols: 2}
+  strip_top_order: [0, 1, 2, 3]   # top cams left-to-right in strip view; reverse if it reads backwards

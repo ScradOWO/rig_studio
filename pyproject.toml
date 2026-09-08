@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rig-studio"
+version = "0.1.0"
+description = "GUI for the 6-camera dragstrip rig: live tuning, HDF5 recording, projector stimulus"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    # 6.11 wheels link ICU and collide with the conda env's icuuc.dll (WinError 127)
+    "PySide6>=6.7,<6.9",
+    "numpy>=1.26,<2",
+    "h5py>=3.10",
+    "hdf5plugin>=5",
+    "PyYAML>=6",
+    "pygame>=2.6",
+    "scipy>=1.12",
+    "pydwf>=1.1",
+    "psutil>=5.9",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+gentl = ["harvesters==1.4.3"]
+multiview3d = ["opencv-contrib-python-headless>=4.10,<5", "aniposelib>=0.7"]
+
+[project.scripts]
+rig-studio = "rig_studio.app:main"
+rig-multiview-validate = "multiview3d.validate_session:main"
+
+[tool.setuptools.packages.find]
+include = ["rig_studio*", "multiview3d*"]
+
+[tool.setuptools.package-data]
+"rig_studio.native" = ["bin/*.dll"]
+
+[tool.pytest.ini_options]
+addopts = "-q --basetemp=.pytest-tmp"
+testpaths = ["tests"]

@@ -1,0 +1,23 @@
+schema_version: 1
+branch: multiview3d
+board:
+  type: charuco
+  squares_x: 45
+  squares_y: 5
+  square_mm: 4.0
+  marker_mm: 2.8
+  dictionary: DICT_4X4_250
+  marker_ids: [0, 111]
+  physical_dimensions_mm: [180.0, 20.0]
+cameras:
+  cam0: {size: [768, 750], overlaps: [cam1]}
+  cam1: {size: [1024, 750], overlaps: [cam0, cam2]}
+  cam2: {size: [1024, 750], overlaps: [cam1, cam3]}
+  cam3: {size: [768, 750], overlaps: [cam2]}
+validation:
+  resize_images: false
+  minimum_charuco_corners_per_image: 12
+  minimum_simultaneous_frames_per_adjacent_pair: 15
+  require_held_out_reprojection: true
+  require_independent_distance_validation: true
+  report_refractive_bias: true

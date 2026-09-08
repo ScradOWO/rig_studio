@@ -1,0 +1,13 @@
+calibration run: charucofin_20260825_141324
+cam0: 36 corners, reproj RMS 0.85 px, image 1472x1450
+cam1: 88 corners, reproj RMS 10.12 px, image 2048x1450
+cam2: 86 corners, reproj RMS 10.98 px, image 2048x1450
+cam3: 36 corners, reproj RMS 1.16 px, image 1472x1450
+cam4: MISSING — board not auto-detectable (side cam? -> manual clicks: python click_side_pnp.py 4 --tag charucofin_20260825_141324)
+cam5: MISSING — board not auto-detectable (side cam? -> manual clicks: python click_side_pnp.py 5 --tag charucofin_20260825_141324)
+
+  cam0+cam1: 16 shared corners | mean 0.341 mm | max 0.792 mm
+  cam1+cam2: 28 shared corners | mean 0.624 mm | max 0.838 mm
+  cam2+cam3: 32 shared corners | mean 0.525 mm | max 1.091 mm
+
+OVERALL: 76 corners, mean 0.523 mm — PASS (gate 1.5 mm)

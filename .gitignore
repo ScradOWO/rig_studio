@@ -1,0 +1,19 @@
+# build / runtime artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.pytest-tmp/
+native/build/
+rig_studio/native/bin/*.dll
+RigStudio.exe
+state/
+.claude/
+
+# scratch (canonical shape layouts live in configs/*.ass)
+Untitled.ass
+
+# data never belongs in the repo: recordings, calibration image sets, exports
+*.h5
+*_png/
+multiview3d/calibrations/*/*.png

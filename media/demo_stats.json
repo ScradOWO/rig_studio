@@ -1,0 +1,18 @@
+{
+ "zebrafish": {
+  "median_3d_error_mm": 0.14382984750128985,
+  "p95_3d_error_mm": 0.49934406892345296,
+  "coverage": 0.9961805555555555,
+  "views_rejected": 480,
+  "node_frames_with_3plus_views": 5173,
+  "finish_time_s": 6.158333333333333
+ },
+ "medaka": {
+  "median_3d_error_mm": 0.14051057399784192,
+  "p95_3d_error_mm": 0.4574863785453438,
+  "coverage": 0.9961805555555555,
+  "views_rejected": 482,
+  "node_frames_with_3plus_views": 5219,
+  "finish_time_s": 9.483333333333333
+ }
+}

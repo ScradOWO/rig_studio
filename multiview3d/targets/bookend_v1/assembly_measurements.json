@@ -1,0 +1,22 @@
+{
+ "_units": "mm; see bookend_target_v1_A4.pdf page 2 for the measurement diagram",
+ "raised_strip_height_M1": null,
+ "lateral_gap_between_strips_M2": null,
+ "lengthwise_shift_between_strips_M3": null,
+ "tab_a": {
+  "gap_from_strip_end_M4": null,
+  "pattern_bottom_above_strip_M5": null,
+  "sideways_offset_M6": null
+ },
+ "tab_b": {
+  "gap_from_strip_end_M7": null,
+  "pattern_bottom_above_strip_M8": null,
+  "sideways_offset_M9": null
+ },
+ "printed_square_check": {
+  "floor_strip_square_mm": null,
+  "raised_strip_square_mm": null,
+  "tab_square_mm": null,
+  "_note": "measure 10 squares with calipers, divide by 10"
+ }
+}
