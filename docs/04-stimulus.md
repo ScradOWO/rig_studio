@@ -60,22 +60,30 @@ Hence the defaults in `configs/rig.yaml`:
 The legacy 120 px/s therefore corresponded to 1.53 cm/s — which is exactly the
 kind of thing a metric stimulus definition exists to make visible.
 
-## 4.5 The projector–camera beat, root-caused
+## 4.5 Projector–camera timing and background modulation
 
-Early recordings "breathed" at ≈2 Hz. The projector is a DLP: each 60 Hz frame
-is a dither sequence of micro-mirror states, so a 5.5 ms exposure samples a
-*partial* dither cycle. Capturing at 178 Hz against 60 Hz projection gives a
-beat at |3·60 − 178| = 2 Hz — matching the observation, and explaining why an
-old 20 Hz capture looked fine (60/20 = 3, phase-locked).
+The project notes describe early recordings with approximately 2 Hz background
+modulation when capturing at 178 Hz against a 60 Hz DLP projector. A candidate
+sampling explanation is `|3 × 60 − 178| = 2 Hz`: short exposures sample part of
+the projector's dither cycle. This is a useful engineering model, not a full
+measurement of the projector's optical waveform.
 
-![beat](../media/projector_beat.png)
+The configured operating rates are 240 Hz projection and 120 Hz camera capture.
+An integer frequency ratio makes repeated exposure sampling possible under stable
+relative timing, but **does not by itself phase-lock the projector and cameras**.
+No shared projector genlock is demonstrated by the code. Actual flip intervals
+and missed flips are logged; background stability must be checked on the instrument.
+An exposure spanning one nominal 240 Hz period is approximately 4,167 µs, although
+the configured camera default is 5,000 µs.
 
-Fix: run the projector at 240 Hz and choose capture rates that divide it.
-At 120 Hz capture every exposure sees the same projector phase (240/120 = 2),
-so there is no beat at all; the first-light exposure of 4166 µs (one projector
-frame) additionally averages out one full dither cycle. The cameras do not
-image the projector directly (RG830 blocks it), but scattered visible light
-still modulated the background enough to matter.
+RG830 filters suppress visible light in the imaging path. Any remaining
+background modulation depends on real filter rejection, illumination, camera
+response, and projector leakage; the repository does not characterize these
+spectral contributions independently.
+
+The historical `media/projector_beat.png` uses a toy dither model and idealized
+relative timing. It is retained as an illustration, not experimental proof of
+an absence of beating or a hardware phase lock.
 
 ## 4.6 Trial timeline and the stimulus log
 

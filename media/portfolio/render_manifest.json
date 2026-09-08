@@ -1,0 +1,22 @@
+{
+  "calibration": "multiview3d/calibrations/charucofin0825_20260825_153755/calibration_charucofin0825_20260825_153755.json",
+  "calibration_sha256": "d96b757331ceafd8c2fb68740c91d60a7e51e9a8380b6ecd199c9e4622b00573",
+  "triangulation_sha256": "84aba71e148dc02cc4b48bee4fe15607192500e53988ac429b8f3bd8a4f77e6d",
+  "seed": 23,
+  "camera_count": 6,
+  "top_cameras": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "end_cameras": [
+    4,
+    5
+  ],
+  "geometry": "205 mm long, radius 25 mm; board z is down; camera centres are exact; body, projector and optical appearance are schematic.",
+  "larvae": "5 mm illustrative larva; synthetic motion; A/B are not inferred species identities.",
+  "optics": "No refraction, lens distortion, projector ray trace, or calibrated spectral-response model.",
+  "stimulus": "Existing profile() used with axial 7.858 px/mm mapping; curved-surface texture mapping is illustrative.",
+  "hash_encoding": "UTF-8 text with LF-normalized line endings"
+}

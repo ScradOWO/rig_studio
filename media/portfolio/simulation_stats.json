@@ -1,0 +1,15 @@
+{
+  "calibration_tag": "charucofin0825_20260825_153755",
+  "seed": 23,
+  "frames": 96,
+  "illustration_fps": 16,
+  "illustrative_larva_length_mm": 5,
+  "median_3d_error_mm": 0.14157347162956782,
+  "p95_3d_error_mm": 0.6062873907547812,
+  "coverage": 1.0,
+  "views_rejected": 32,
+  "noise_sigma_px": 1.5,
+  "miss_probability": 0.04,
+  "outlier_probability": 0.03,
+  "scope": "Synthetic single-larva illustration. Not live performance, biological evidence, or a 120 Hz acquisition benchmark."
+}

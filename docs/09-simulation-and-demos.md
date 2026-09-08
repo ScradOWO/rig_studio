@@ -1,4 +1,6 @@
-# 9. The demonstrations: what is real, what is simulated
+# 9. Historical demonstrations: what is real, what is simulated
+
+> These are the original demonstrations, retained unchanged. The refreshed README uses [new larval visuals](11-visuals.md). This older model uses 24/28 mm bodies and should not be read as a larval size or species-performance model. Its projector timing assumes an ideal phase relationship; that is not evidence of actual hardware genlock. Its flat stimulus-floor rendering is a simplification of the coated curved trough.
 
 The animated media in `media/demo_*` and the interactive viewer are generated
 by one script, `tools/render_demos.py`, so that every figure in this repository

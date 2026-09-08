@@ -21,7 +21,8 @@ the end of the run and flags > 0.5 px drift.
 below the surface is seen at different parallax by adjacent cameras; a surface
 map cannot be metric for it. The stitch remained useful for viewing, never for
 measurement. Replaced by per-camera calibration to a common metric tank frame
-and 3D by triangulation. The retired code stays on disk as evidence. *Lesson:*
+and 3D by triangulation. The retired structured-light/stitch implementation
+is described here but is not included in this repository snapshot. *Lesson:*
 optimise the objective you actually need; sub-pixel seams were the wrong
 objective.
 
@@ -90,3 +91,11 @@ While plotting the extrinsics for this documentation, all top cameras came out
 at z ≈ −50 mm. The code's label said "z up". The extrinsics are right, the label
 was wrong; corrected in code and here. Recorded because it is exactly the kind
 of silent sign error that costs weeks downstream.
+
+### Portfolio documentation refresh — physical layout and larval scope
+The author confirmed upward projection from below onto the coated curved trough,
+four overhead and two end-view RG830-filtered cameras, and larval zebrafish/medaka
+racing as the research context. Real apparatus photos and new larval illustrations
+now accompany the README. The projector-to-camera timing claim was narrowed to
+configured rates plus recorded flips, without assuming hardware phase lock.
+Existing application, analysis, test, calibration, and configuration files were unchanged.

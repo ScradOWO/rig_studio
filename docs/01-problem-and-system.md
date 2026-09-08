@@ -2,8 +2,10 @@
 
 ## The scientific problem
 
-Small fish (medaka, zebrafish) in a narrow, half-cylindrical trough are shown a
-moving pattern projected from above. The behavioral readouts are the animal's
+Zebrafish and medaka larvae in a narrow, half-cylindrical trough are shown a
+moving pattern projected from below onto its coated curved surface. Species and
+age groups can experience the same visual environment so that speed, persistence,
+depth choice, and responses to competing cues can be compared. The behavioral readouts are the animal's
 3D trajectory, swimming speed, depth, and its timing relative to the stimulus
 (optomotor response). The instrument must therefore deliver, per trial:
 
@@ -16,19 +18,16 @@ Everything in this repository exists to satisfy one of those four lines.
 
 ## Physical layout
 
-```
-                 projector (1920x1080 @ 240 Hz, above the tank)
-                                 |
-   cam3      cam2      cam1      cam0        <- 4 top-down cameras along the tank
-    v         v         v         v
- =====================================      <- trough, ~205 mm long, r = 25 mm
-cam5 >     water column ~22 mm deep    < cam4   <- 2 side cameras through the flat end windows
- =====================================
-```
+![Six-camera geometry and upward projection onto the coated trough](../media/portfolio/rig_geometry.png)
+
+Four cameras look down along the trough; two end cameras look inward through
+the flat end windows. The projector sits below the coated curved surface.
+Camera centres in this diagram come from the saved calibration; housings and
+projector placement are schematic. See the [real photographs](../README.md#the-real-apparatus).
 
 * Cameras: 6x FLIR Grasshopper3 monochrome, near-IR, behind RG830 long-pass
-  filters under IR flood illumination. The cameras do not see the projector
-  (visible light is blocked); the fish does.
+  filters under IR flood illumination. The filters suppress visible stimulus light in the camera path; the fish
+  experiences the projected stimulus. Background rejection depends on the actual optics.
 * Sensor crops are frozen: cam0/cam3 1472x1450, cam1/cam2 2048x1450,
   cam4/cam5 2048x1408 pixels.
 * Trigger: one hardware clock (Digilent Digital Discovery) into every camera's
@@ -44,8 +43,8 @@ surface sits at z ≈ −22 mm.
 
 ![Camera extrinsics in the tank frame](../media/camera_geometry.png)
 
-![race](../media/demo_race_3d.gif)
-*The whole system in one animation — real camera geometry and stimulus, simulated fish (see §9).*
+![Larval stimulus illustration](../media/portfolio/stimulus_3d.gif)
+*Illustrative larval bodies and motion; curved stimulus mapping is schematic. See [visual provenance](11-visuals.md).*
 
 ## Software components (this repository)
 
@@ -70,4 +69,6 @@ Numbers that the rest of the docs build on:
 | Side↔top agreement | 0.155 mm (cam4↔cam0), 0.147 mm (cam5↔cam3) | calibration JSON `qc` |
 | Stimulus scale | 7.858 px/mm along the tank | projector footprint measurement, 4 cameras agree within 0.1 % |
 | Stimulus defaults | period 157.5 px = 20.0 mm; drift 78.6 px/s = 1.00 cm/s = 0.5 Hz temporal | `configs/rig.yaml` |
-| Tests | 86, hardware-free (sim backend, offscreen Qt, SDL dummy video) | `pytest` |
+| Tests | Hardware-free tests for simulated acquisition, GUI, stimulus, and geometry | `tests/`; not rerun during the documentation refresh |
+
+Research aims are described in the [README](../README.md#the-experiment-beyond-a-finish-time). The current reconstruction is single-animal; multi-animal cross-view identity handling and biological comparisons remain outside the implemented scope.

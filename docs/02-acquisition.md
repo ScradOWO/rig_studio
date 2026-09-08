@@ -105,8 +105,8 @@ The stimulus log (§4) records every projector flip with the same host clock,
 which is what makes behavior-versus-stimulus phase analysis possible without a
 separate sync signal.
 
-![acquisition timing](../media/demo_acquisition_timing.gif)
-*Slow-motion timing model of one trial start: clock, exposures, projector flips, hardware ids (`tools/render_demos.py`).*
+![Acquisition timing](../media/portfolio/acquisition_timing.gif)
+*Schematic shared camera trigger and separately clocked projector refresh. The projector phase is illustrative, not measured genlock; per-flip host timestamps provide stimulus timing.*
 
 ## 2.5 Certification protocol
 
@@ -127,3 +127,5 @@ camera (x264 `qp 0`, gray) for SLEAP labelling. Lossy CRF encoding was rejected
 after inspection: it smears the dark near-IR footage in exactly the low-contrast
 regions where keypoints live. Frame `i` of each mp4 is HDF5 valid-frame `i`, so
 the hardware-id mapping survives the export.
+
+The 120 Hz certification above is a historical result recorded in the project notes. The raw trial recordings are not included. Full-resolution crops used for the throughput calculation differ from some earlier Mode2 presets retained in the YAML; see [evidence and configuration scope](10-evidence-and-scope.md).

@@ -1,167 +1,183 @@
-# rig-studio — a six-camera, hardware-synchronized 3D behaviour rig
+# Rig Studio
 
-Acquisition, metric calibration, projector stimulus, and 3D reconstruction for
-a fish-behaviour instrument: six near-IR cameras on a half-cylindrical tank,
-one hardware clock, a 240 Hz projector, and a millimetre world frame shared by
-all of it. Python + a thin C++ bridge; 86 hardware-free tests.
+### Six-camera machine vision and 3D pose reconstruction for larval fish racing
 
-![race](media/demo_race_3d.gif)
+**Harvard MCB · Summer research, 2026**
 
-*Two simulated fish race under the real drifting grating, seen from the six real camera positions — every geometric quantity above comes from the shipped calibration; only the fish are synthetic ([what is real vs simulated](docs/09-simulation-and-demos.md)).*
+Python · C++ · OpenCV · SLEAP integration · Hardware synchronization · Computational behavior
 
-## What it does, in numbers
+What makes a fish win a race: **speed, persistence, or where it chooses to swim?**
 
-| | |
+This project turns the optomotor response into a quantitative racing experiment. Zebrafish and medaka larvae, including different age groups, experience a shared moving visual environment. Reconstructing their motion in 3D makes it possible to ask how swimming speed, endurance, depth choice, and conflicting visual cues shape their strategies.
+
+I built the acquisition, calibration, stimulus-control, and reconstruction software that makes those comparisons possible: **six synchronized camera streams → learned 2D keypoints → trajectories and body pose in millimetres**, with timing and reconstruction quality carried through the pipeline.
+
+![Conceptual 3D rendering of four overhead cameras and two end cameras surrounding a coated half-cylinder trough, with a projector below](media/portfolio/rig_concept.png)
+
+*Concept render informed by the real rig photos below. Camera housings, supports, and optical appearance are illustrative; this is not a photograph or a dimensioned CAD model.*
+
+[See the real apparatus](#the-real-apparatus) · [Watch the pipeline](#from-images-to-3d-pose) · [Inspect the evidence](docs/10-evidence-and-scope.md) · [Run the simulator](#try-it-without-hardware)
+
+## What I built
+
+| Area | Technical contribution | Why it matters |
+|---|---|---|
+| **Machine vision** | Six FLIR Grasshopper3 cameras on one hardware trigger; one acquisition process per camera; native C++ frame transfer into NumPy storage; streamed HDF5 recording | Preserves simultaneous views of fast motion while keeping camera acquisition separate from the GUI |
+| **Camera calibration & 3D geometry** | Static ChArUco target, per-camera PnP, shared-corner metric checks, and manual side-camera correspondences | Places all six cameras in one physical coordinate frame and makes calibration quality inspectable |
+| **3D pose estimation** | Confidence-filtered SLEAP keypoints, hardware-frame-ID alignment, DLT triangulation, and pairwise-consensus outlier rejection | Converts image coordinates into 3D body landmarks while retaining evidence of unreliable estimates |
+| **AI/ML integration** | Lossless videos for pose labeling; ingestion of SLEAP analysis exports and confidence scores; synthetic noisy-detection evaluation | Connects learned 2D perception to geometric reconstruction without discarding timing or uncertainty |
+| **Visual stimulus engineering** | A separate projector process, measured-flip phase integration, physical stimulus scale, editable shape layers, and per-flip logs | Makes the visual environment controllable and relates swimming behavior to stimulus history |
+| **Experimental software** | PySide6 operator interface, configurable camera profiles, guarded setting changes, simulator backend, and hardware-free tests | Supports repeatable trials and development away from the apparatus |
+
+The ML component is **SLEAP-based 2D pose estimation integrated with a geometric 3D pipeline**. This repository contains the integration and reconstruction code; it does not include trained weights, a training dataset, or a held-out pose-network benchmark. The project brief also named Anipose; the implemented reconstruction here uses the repository's own DLT and consensus code.
+
+## The experiment: beyond a finish time
+
+![3D illustration of two small synthetic larvae in a shared moving grating](media/portfolio/stimulus_3d.gif)
+
+*Illustrative larvae and trajectories, not experimental outcomes. The grating uses the existing stimulus luminance function; its mapping onto the curved surface is schematic. A and B do not encode measured species differences.*
+
+The scientific goal is to compare zebrafish and medaka across ages in a deep arena, including their responses to competing visual cues.
+
+| Research question | What 3D tracking makes measurable |
 |---|---|
-| Synchronized acquisition | 6 cameras at **120 Hz** from one trigger clock; certified with zero hardware-frame-id gaps over a 30 s trial (3596–3598 frames/camera) |
-| Sustained data rate | **≈1.9 GB/s** raw (16.0 MB per 6-camera frame set) into pre-allocated HDF5 across two NVMe drives, drop-counted per camera |
-| Metric calibration | four top cameras agree to **0.52 mm mean** on 78 shared corners of a printed 4 mm ChArUco grid; side cameras to **0.15 mm** vs their neighbours — every camera solved directly against the physical grid, nothing chained |
-| Stimulus | exact port of the legacy Psychtoolbox grating, drift **refresh-independent** via measured-flip integration; defined in tank units (**1.00 cm/s, 20.0 mm period** via a measured 7.858 px/mm); operator-drawn shape layers on top |
-| 3D reconstruction | DLT triangulation aligned by hardware frame id; outlier cameras rejected by **pairwise consensus** — a documented counter-example shows why "drop the worst residual" silently fails here |
-| Software | ~11 k lines of Python in 62 modules + a 17 kB C++ Spinnaker bridge; one worker **process** per camera; deterministic simulator backend; **86 tests** run without hardware |
+| Does a fast start predict a win? | Along-arena progress, instantaneous speed, and changes over a trial |
+| Do animals maintain the response or tire? | Response duration and changes in sustained swimming; exhaustion requires an experimental definition |
+| Do animals prefer particular depths? | Depth occupancy and transitions during stimulation |
+| Do they choose regions with lower optic flow? | Trajectories relative to stimulus geometry; retinal optic flow needs an additional viewing/optical model |
+| How do conflicting cues change strategy? | Direction reversals, depth changes, and timing relative to the stimulus log |
+| Do species and age groups differ? | Matched trajectory-derived measurements across controlled conditions |
 
-## Read this in order
+These are the research questions the instrument supports. This repository does not claim completed biological comparisons or establish a winning strategy.
 
-| | |
+## The real apparatus
+
+| Instrument overview | Camera, lens, and trough |
 |---|---|
-| [1 · Problem and system](docs/01-problem-and-system.md) | the scientific requirement, the physical layout, the world frame, component map |
-| [2 · Synchronized acquisition](docs/02-acquisition.md) | trigger math, throughput budget, process architecture, time axis, certification protocol |
-| [3 · Metric calibration](docs/03-calibration.md) | static ChArUco method, cross-validation, side-camera PnP, resulting geometry, limitations |
-| [4 · Projector stimulus](docs/04-stimulus.md) | the grating equation, dt-corrected drift, px→mm, the DLP/camera beat root cause |
-| [5 · 2D → 3D](docs/05-triangulation.md) | DLT derivation, consensus outlier rejection with a worked vote, outputs |
-| [6 · Shape layouts](docs/06-shape-layouts.md) | Aegisub as a layout editor, measured placement rule, compositing math |
-| [7 · Decision log](docs/07-decision-log.md) | every consequential choice with its reason — including the abandoned stitch architecture |
-| [8 · Lessons](docs/08-lessons.md) | hardware and environment facts that cost days |
-| [9 · Demonstrations](docs/09-simulation-and-demos.md) | the fish kinematics model, the observation model, and what the animated demos do and do not claim |
-| [Operator manual](docs/operator-manual.md) | day-to-day usage |
+| ![Actual rig with top cameras, an end camera, optical posts, and projector below](media/photos/rig_overview.jpg) | ![Actual FLIR camera and lens over the narrow curved trough, with an end-view lens in the foreground](media/photos/camera_and_trough.jpg) |
 
-## Demonstrations (real geometry, simulated fish)
+*Project photographs supplied by the author. Red illumination and calibration patterns reflect the photographed setup; the monochrome grating in the illustrations is a separate stimulus example.*
 
-Generated by `python tools/render_demos.py` from the committed calibration and
-config — reproducible, and honest about what is synthetic ([§9](docs/09-simulation-and-demos.md)).
+- **Arena:** a narrow, open, half-cylindrical trough, approximately 205 mm long with a 25 mm radius. Its curved surface has a projection coating.
+- **Stimulus:** a projector **below** the trough projects upward onto the coated curved surface; the configured display mode is 1920 × 1080 at 240 Hz.
+- **Imaging:** four overhead Grasshopper3 cameras cover the arena length; two end cameras look inward through the flat end windows and provide complementary depth constraints.
+- **Spectral separation:** RG830 long-pass filters over the camera lenses support near-IR imaging while visible patterns stimulate the fish. Filter rejection and background stability still depend on the actual optical setup.
+- **Geometry:** camera poses are expressed in the ChArUco board frame, in millimetres. **Positive z points down**, away from the overhead cameras.
 
-| | |
-|---|---|
-| ![six views](media/demo_six_views.gif) | **What the six cameras see.** The two fish projected through the real camera matrices into the real crops, with pose-network-like 2D keypoints (σ = 1.5 px noise, 4 % misses, 3 % gross outliers marked ×). The dashed shape is the calibration board seen by that camera. |
-| ![reconstruction](media/demo_reconstruction.gif) | **2D → 3D with the production code.** `triangulate_views` rebuilds every node from those detections: median 3D error 0.14 mm, 95th percentile 0.5 mm, 480 corrupted camera views voted out by consensus; the residual spikes are the genuinely ambiguous 2–3-view cases, reported rather than hidden. Bottom: the race plot against the 10 mm/s grating drift. |
-| ![timing](media/demo_acquisition_timing.gif) | **The drivers, in slow motion.** One 120 Hz clock, six 5 ms exposures, 240 Hz projector flips phase-locked two per frame, hardware frame ids with the real ±2-frame ragged start, and the byte counter running at 1.92 GB/s. |
-| ![beat](media/projector_beat.png) | **A root cause, not a workaround.** Why 178 Hz capture of a 60 Hz DLP breathed at exactly 2 Hz, and why 240 Hz / 120 Hz does not. |
+![Calibrated six-camera geometry with schematic housings and projector below](media/portfolio/rig_overview.gif)
 
-Interactive: open [`media/interactive_race.html`](media/interactive_race.html)
-locally (drag to rotate, wheel to zoom, scrub the race) — a dependency-free
-canvas viewer over the same calibration and trajectories.
+*Camera centres and axes come from the committed calibration. Camera-body sizes, mounts, projector position, light paths, and coating appearance are illustrative. [Geometry and calibration](docs/03-calibration.md)*
 
-## Architecture in one picture
+## From images to 3D pose
+
+![Six calibrated views of a synthetic larva with four noisy anatomical keypoints](media/portfolio/six_views_3d.gif)
+
+*Six synthetic monochrome views projected through the saved camera matrices and displayed with each crop's aspect ratio preserved. These are not camera recordings or SLEAP predictions. Colored nodes represent head, body, tail base, and tail end; red crosses mark injected detection outliers.*
+
+1. **Capture simultaneous images.** A Digilent hardware clock triggers all six cameras; each recording retains hardware frame IDs and host timing.
+2. **Estimate 2D landmarks.** Export lossless per-camera videos for SLEAP, then load its keypoint coordinates and confidence scores.
+3. **Align corresponding observations.** Match by hardware frame ID, because equal array indices can refer to different exposures.
+4. **Reconstruct 3D landmarks.** Use calibrated projection matrices and DLT; camera-pair hypotheses vote on outlier views.
+5. **Keep quality information.** Export 3D points, worst retained-view reprojection residual, number of views, frame IDs, and host times to HDF5/CSV.
+
+![Magnified synthetic larval body with reconstructed 3D landmarks and per-node reconstruction error](media/portfolio/pose_reconstruction.gif)
+
+*The existing triangulation functions reconstruct synthetic detections with 1.5 px Gaussian noise, 4% random misses, and 3% gross outliers. This checks numerical behavior under the stated model; it does not measure real-animal tracking accuracy. [Rendering provenance](docs/11-visuals.md) · [Triangulation method](docs/05-triangulation.md)*
 
 ```mermaid
-flowchart LR
-  subgraph acquisition
-    CLK[Digilent clock<br/>Line0 to all cameras] --> C0[cam0] & C1[cam1] & C5[cam5]
-    C0 --> W0[worker proc 0<br/>native fetch + HDF5 writer]
-    C1 --> W1[worker proc 1]
-    C5 --> W5[worker proc 5]
-    W0 & W1 & W5 -->|pipe events, shm previews| SUP[RecorderSupervisor]
-    SUP --> GUI[PySide6 GUI]
-  end
-  subgraph stimulus
-    GUI -->|JSON lines| HOST[stimulus host proc<br/>pygame 240 Hz]
-    HOST --> PROJ[projector]
-    HOST --> LOG[(stim_log.mat)]
-  end
-  subgraph analysis
-    H5[(cam*.h5)] --> MP4[lossless mp4] --> SLEAP[SLEAP 2D] --> TRI[triangulate3d<br/>DLT + consensus] --> P3[(points3d.h5)]
-    CAL[(calibration.json)] --> TRI
-  end
-  W0 & W1 & W5 --> H5
+flowchart TD
+    CLOCK["Hardware trigger"] --> CAMS["Six camera streams"]
+    CAMS --> RECORD["Per-camera workers and HDF5"]
+    RECORD --> EXPORT["Lossless video export"]
+    EXPORT --> SLEAP["SLEAP 2D landmarks"]
+    RECORD --> ALIGN["Hardware frame-ID alignment"]
+    SLEAP --> ALIGN
+    CAL["ChArUco and side-camera PnP"] --> TRI["DLT and consensus rejection"]
+    ALIGN --> TRI
+    TRI --> OUTPUT["3D pose, trajectories, and quality metrics"]
+    STIM["Projector stimulus process"] --> LOG["Per-flip stimulus log"]
+    OUTPUT --> ANALYSIS["Downstream behavioral analysis"]
+    LOG --> ANALYSIS
 ```
 
-## Try it without the hardware
+## Why this approach fits the problem
 
-```powershell
-pip install -e .                             # Python 3.11; PySide6 pinned <6.9 (see docs/08-lessons.md)
-python -m rig_studio.app --backend sim       # full GUI on a deterministic simulated rig
-pytest                                       # 86 tests: sim backend, offscreen Qt, SDL dummy video
+The main improvement was changing the measurement model: **a well-aligned panorama cannot represent a freely swimming animal's depth**. Calibrated views preserve the geometry needed to reconstruct it.
+
+| Design decision | Advantage for this rig | Boundary |
+|---|---|---|
+| Calibrated multi-view 3D instead of a surface panorama | Retains parallax as depth information instead of treating it as a stitching error | Accuracy still depends on intrinsics, distortion, and refraction |
+| Four top views plus two end views | Combines longitudinal coverage with complementary viewing directions | Occlusion and weak overlap can still limit reconstruction |
+| Every camera solved against the same physical target | Avoids accumulating transforms along a chain of adjacent cameras | A planar target provides limited intrinsic and off-plane validation |
+| Pairwise-consensus rejection instead of dropping the largest residual | Handles a documented case where a corrupted view pushes error onto a clean camera | Ambiguous votes retain disagreement; two views cannot establish consensus |
+| Hardware frame-ID alignment instead of array-index alignment | Accounts for ragged recording starts and preserves simultaneous observations | Frame counters must correspond to the shared trigger sequence for each trial |
+| Separate recorder, GUI, and stimulus processes | Keeps display work off the acquisition path and bounds buffering per camera | Hardware throughput and full-trial integrity require instrument testing |
+
+This is a case for the design in this arena, not a claim of universal superiority over Anipose, bundle adjustment, or other tracking systems. [Engineering decisions](docs/07-decision-log.md)
+
+## Evidence, with the measurement scope attached
+
+| Result | Evidence and interpretation |
+|---|---|
+| **0.515 mm mean shared-corner reconstruction error** | 78 shared board corners across adjacent overhead-camera pairs in the [saved calibration report](media/calibration_report_20260825.txt). A board-plane consistency check, not independent full-volume animal accuracy. |
+| **0.155 / 0.147 mm side-to-top agreement** | Saved calibration JSON QC for cam4↔cam0 and cam5↔cam3. Based on manually identified target points. |
+| **120 Hz across six cameras** | The [acquisition notes](docs/02-acquisition.md) document a 30 s trial with 3,596–3,598 frames per camera and contiguous frame IDs. Raw recordings are not included for re-audit. |
+| **1.917 GB/s calculated raw image payload** | 15,975,168 bytes per six-camera frame set × 120 Hz at the documented full-resolution crops. This is a payload budget, not a newly measured disk benchmark. |
+| **20.0 mm period; 10.0 mm/s stimulus drift** | 157.5 px period and 78.6 px/s speed, using the documented axial scale of 7.858 px/mm. |
+| **Reconstruction correctness and failure-case coverage** | Existing [triangulation tests](tests/test_triangulate3d.py) cover exact recovery, consensus rejection, ambiguous views, and frame-ID alignment. New media include their own synthetic statistics and provenance. |
+
+The new animation statistics are in [simulation_stats.json](media/portfolio/simulation_stats.json). The older two-fish demo has separate statistics and a different body model; its numbers must not be attributed to the larval animations. [Evidence and scope](docs/10-evidence-and-scope.md)
+
+![Schematic camera triggering and separately clocked projector refresh](media/portfolio/acquisition_timing.gif)
+
+*Camera triggering is shared in hardware. The diagram's projector phase is illustrative: a 240:120 rate ratio alone does not establish projector-to-camera genlock. Actual flip timing is logged.*
+
+## Try it without hardware
+
+Use **Python 3.11**. The real acquisition system targets Windows and the vendor SDKs; the deterministic simulator provides a hardware-free entry point.
+
+```bash
+python -m pip install -e ".[test]"
+python -m rig_studio.app --backend sim
+python -m pytest
 ```
 
-The stimulus host runs windowed on any machine (Run tab, "windowed"). The
-calibration and triangulation code runs on the shipped calibration JSON and any
-SLEAP `.analysis.h5` exports.
+The simulator demonstrates the application flow; it is separate from the larval research illustrations. For hardware setup, recording, stimulus profiles, and trial operation, see the [operator manual](docs/operator-manual.md).
 
-## Repository map
+Rebuild the new documentation animations without the acquisition stack:
 
-```
-tools/render_demos.py   regenerates every demo figure and animation from the committed calibration
-rig_studio/
-  backend/       Spinnaker (native), Harvesters/GenTL, and sim camera backends
-  native/        C++ bridge: frames written straight into caller-owned NumPy storage
-  recorder/      one worker process per camera; supervisor state machine; shm preview bus
-  recording/     MEX-compatible HDF5 writer, lossless frame export
-  trigger/       Digilent clock (divider math ported verbatim)
-  safety/        snapshot -> allowlist -> write -> readback -> guaranteed restore
-  stimulus/      pygame host, grating math, .ass shape layer, named profiles, per-flip log
-  orchestrator/  trial timeline (arm -> gate -> baseline -> stimulus -> stop)
-  gui/           PySide6 panels (never touch camera buffers)
-multiview3d/
-  calibrate_static.py   ChArUco pose per top camera + cross-camera metric QC
-  click_side_pnp.py     side cameras: ~10 clicked crossings -> PnP (both mirror hypotheses)
-  triangulate3d.py      SLEAP 2D -> tank-mm 3D, hw-id alignment, consensus outlier rejection
-  bench_rate.py         empirical concurrent frame-rate ceiling
-  h5_to_mp4.py          lossless exports for labelling
-  calibrations/         live calibration JSON + QC report
-configs/               rig.yaml (every tunable), stimulus profiles, shape layouts (.ass)
-tests/                 86 tests, no hardware required
-docs/                  the write-up above
+```bash
+python -m pip install numpy pillow pyyaml
+python tools/render_portfolio.py
 ```
 
-## Questions a reviewer would ask
+The renderer pins a named calibration, records source hashes, and uses a fixed random seed. It adds no acquisition, stimulus-runtime, or reconstruction changes. The AI concept render and author photographs are separate assets.
 
-**Why not stitch the four top views and track on the panorama?** That was the
-first architecture and it reached 0.01–0.27 px seams. It was abandoned because a
-panorama is a map of the *water surface*; a fish 15 mm below it appears at
-different parallax in adjacent cameras, so the surface is not metric for the
-thing being measured. [Decision log](docs/07-decision-log.md)
+## Explore the implementation
 
-**Why not anipose / bundle adjustment?** A waved-board bundle adjustment was the
-predecessor's route and produced sparse, hard-to-audit results. A motionless
-board solved per camera against the printed grid gives an acceptance number in
-millimetres with no optimiser to trust blindly. Bundle adjustment remains the
-right tool once a distortion model is added.
+| Start here | What to inspect |
+|---|---|
+| [Acquisition architecture](docs/02-acquisition.md) | Worker isolation, bounded pools, throughput, and synchronization |
+| [Calibration](docs/03-calibration.md) | ChArUco/PnP, shared-corner checks, nominal intrinsics, and limitations |
+| [Stimulus engineering](docs/04-stimulus.md) | Grating math, physical scale, measured-flip integration, and timing |
+| [3D reconstruction](docs/05-triangulation.md) | DLT derivation and a worked consensus failure case |
+| [Shape layouts](docs/06-shape-layouts.md) | Operator-authored stimulus geometry and compositing |
+| [Decision log](docs/07-decision-log.md) | Alternatives, trade-offs, and the move away from stitching |
+| [Evidence map](docs/10-evidence-and-scope.md) | Which claims come from code, saved outputs, notes, or simulation |
+| [Visual provenance](docs/11-visuals.md) | Real photos, illustrative geometry, synthetic larvae, and reproducibility |
 
-**Nominal intrinsics — really?** Yes, stated openly: the 5-row target cannot
-constrain them, so the gate is metric agreement in the overlaps (0.52 mm), and
-the ≈10 px reprojection RMS on the wide cameras is recorded as the reason a
-distortion model is the next step. [Calibration, §3.2](docs/03-calibration.md)
+Source entry points: [`native/src/bridge.cpp`](native/src/bridge.cpp), [`rig_studio/recorder/`](rig_studio/recorder/), [`rig_studio/stimulus/`](rig_studio/stimulus/), [`multiview3d/calibrate_static.py`](multiview3d/calibrate_static.py), and [`multiview3d/triangulate3d.py`](multiview3d/triangulate3d.py).
 
-**Refraction?** The board is calibrated in water, so the floor plane is metric;
-height above it carries an unmodelled bias. Listed as a limitation with the
-planned fix, not hidden.
+## Current scope and next steps
 
-**Why Python for a 240 Hz stimulus and a 1.9 GB/s recorder?** Isolation, not
-language: the stimulus is its own high-priority process with a 1-D-row fast path;
-acquisition is one process per camera with a C++ bridge writing directly into
-NumPy ring storage. Measured, not assumed — see the certification protocol in
-[Acquisition, §2.5](docs/02-acquisition.md).
+The implemented reconstruction reads **one tracked animal per camera export**. Comparing multiple animals in a shared visual environment is the research objective; automatic cross-view identity matching, multi-animal tracking, and identity stitching are not implemented here. Showing two synthetic larvae does not demonstrate those capabilities.
 
-**Why is the tracking video lossless?** Because CRF encoding smeared the dark
-near-IR footage precisely where keypoints live. `qp 0` was verified bit-exact
-against the HDF5.
+The next accuracy upgrades are measured lens intrinsics/distortion and refraction-aware geometry, followed by validation at multiple depths. The current calibration uses nominal intrinsics; the wide overhead cameras have approximately 10 px reprojection RMS. Sub-millimetre target consistency should therefore not be read as a full-volume accuracy guarantee.
 
-**Why hardware frame ids instead of frame numbers?** Cameras start ±2 frames
-apart. Two frames at 120 Hz is 17 ms — 2.5 mm at a zebrafish dart.
+Species/age comparisons, endurance analysis, and inference about optic-flow preference require experimental data and downstream analysis beyond this repository. A public race website was an optional idea in the project brief and is not part of the implemented system.
 
-**Why a subtitle editor for stimulus geometry?** The operator already places
-shapes fluently in Aegisub; its placement semantics were *measured* against
-libass (the documented assumption was 61 px wrong) rather than building a new
-editor. [Shape layouts](docs/06-shape-layouts.md)
+## Research context and attribution
 
-## Status and limits
+Developed for a fish-behavior research rig at Harvard's Department of Molecular and Cellular Biology during summer 2026. The software preserves acquisition and stimulus semantics from a predecessor MATLAB/MEX workflow so that the experimental pipeline remains comparable. SLEAP supplies the external learned 2D pose-estimation stage; this project contributes the acquisition, geometric calibration, stimulus, and reconstruction integration described above.
 
-Live and in use for single-animal trials. Not yet done: distortion/refraction
-models, multi-animal cross-view matching and tracklet stitching, a 3D viewer.
-Each is scoped in the docs.
-
-## Attribution
-
-Developed in 2026 for a fish-behaviour rig at Harvard (MCB). The acquisition
-and stimulus semantics deliberately reproduce a predecessor MATLAB/MEX pipeline
-so that historical trials stay comparable.
+The photographs show the author's real apparatus. Generated visuals are labeled illustrations; research aims, implemented capabilities, and measured results are distinguished throughout.

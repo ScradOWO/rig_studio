@@ -14,7 +14,7 @@ tank-millimetre 3D trajectories. Single animal for now.
 
 The common timeline is the **union of hardware frame ids**; each camera's rows
 are mapped onto it by id. Aligning by array index would be wrong by up to two
-frames (17 ms at 120 Hz, ≈2.5 mm at a zebrafish dart speed of 30 cm/s).
+frames (16.7 ms at 120 Hz, corresponding to 5 mm at an illustrative speed of 300 mm/s).
 
 ## 5.2 Direct linear transform
 
@@ -79,8 +79,8 @@ pair claims two inliers with ≈0 error — a genuine tie — so all three are k
 and the point carries a 40 px residual that downstream filtering can see.
 Silent wrong answers are the failure mode this design refuses.
 
-![reconstruction demo](../media/demo_reconstruction.gif)
-*Production triangulation on a simulated two-fish race projected through the real cameras; see §9 for the model and the honesty line.*
+![Larval reconstruction demonstration](../media/portfolio/pose_reconstruction.gif)
+*Existing triangulation functions on noisy synthetic larval observations projected through the saved calibration. No live animal accuracy is implied. See [visual provenance](11-visuals.md).*
 
 ## 5.4 Outputs and QC
 
@@ -91,8 +91,9 @@ Silent wrong answers are the failure mode this design refuses.
   calibration tag and the frame definition as attributes;
 * `points3d.csv` — long format for quick plotting;
 * `qc_report.txt` — coverage per node, median / 95th-percentile reprojection
-  error, and the x/y/z extent per node (a fish should stay inside
-  0–180 × 0–20 × −22–0 mm; anything else is a calibration or tracking fault).
+  error, and the x/y/z extent per node (the board footprint is
+  0–180 × 0–20 mm, but the trough is wider than the board and has a curved boundary;
+  validity checks should use the actual arena volume, not reject all points outside the board footprint).
 
 Verification: synthetic rigs with known ground truth recover points to 1e-6 mm;
 an end-to-end test builds fake recordings whose cameras start ±2 frames apart
