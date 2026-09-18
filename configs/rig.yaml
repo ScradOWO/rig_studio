@@ -1,5 +1,12 @@
-# Authoritative rig config for rig-studio. Values ported from
+# Rig Studio operator preset. Values ported from
 # flir_camera_helper_c.cpp (MEX) and record_cameras_show_stimulus.m.
+#
+# IMPORTANT: this file preserves the earlier Mode2 preset used by the
+# application/tests. It is not the final 2K/native-resolution trial state used
+# by the saved August 2026 calibration. The calibration capture dimensions are
+# documented in docs/10-evidence-and-scope.md and the calibration JSON. Because
+# apply_profile_on_connect is false, connecting adopts the cameras' current
+# SpinView state; this preset is only written when the operator loads it.
 rig:
   name: dragstrip_6cam
   gentl_cti: 'C:\Program Files\Teledyne\Spinnaker\cti64\vs2015\Spinnaker_GenTL_v140.cti'
@@ -14,7 +21,8 @@ backend:
 cameras:
   # false = Connect adopts the cameras' current (SpinView) imaging settings
   # as-is and only configures trigger/stream/chunks; the table below is then
-  # applied only via the "Load rig preset" button.
+  # applied only via the "Load rig preset" button. The final 2K capture ROI
+  # table is a calibration/trial record, not this legacy preset.
   apply_profile_on_connect: false
   # roiCrops (user, 2026-08-18): [offset_x, offset_y, width, height] in the
   # Mode2 (vertical-binning-2) 1024x1024 coordinate space.
@@ -113,3 +121,4 @@ gui:
   preview_decimate: 2
   grid: {rows: 3, cols: 2}
   strip_top_order: [0, 1, 2, 3]   # top cams left-to-right in strip view; reverse if it reads backwards
+
