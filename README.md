@@ -61,6 +61,7 @@ These are the research questions the instrument supports. This repository does n
 - **Arena:** a narrow, open, half-cylindrical trough, approximately 205 mm long with a 25 mm radius. Its curved surface has a projection coating.
 - **Stimulus:** a projector **below** the trough projects upward onto the coated curved surface; the configured display mode is 1920 × 1080 at 240 Hz.
 - **Imaging:** four overhead Grasshopper3 cameras cover the arena length; two end cameras look inward through the flat end windows and provide complementary depth constraints.
+- **Recorded camera geometry:** the saved 2K/native calibration uses per-camera crops of cam0/3 = 1472×1450, cam1/2 = 2048×1450, and cam4/5 = 2048×1408. The older Mode2 operator preset remains in [`configs/rig.yaml`](configs/rig.yaml); the distinction and evidence are documented in [the evidence map](docs/10-evidence-and-scope.md).
 - **Spectral separation:** RG830 long-pass filters over the camera lenses support near-IR imaging while visible patterns stimulate the fish. Filter rejection and background stability still depend on the actual optical setup.
 - **Geometry:** camera poses are expressed in the ChArUco board frame, in millimetres. **Positive z points down**, away from the overhead cameras.
 
@@ -181,3 +182,4 @@ Species/age comparisons, endurance analysis, and inference about optic-flow pref
 Developed for a fish-behavior research rig at Harvard's Department of Molecular and Cellular Biology during summer 2026. The software preserves acquisition and stimulus semantics from a predecessor MATLAB/MEX workflow so that the experimental pipeline remains comparable. SLEAP supplies the external learned 2D pose-estimation stage; this project contributes the acquisition, geometric calibration, stimulus, and reconstruction integration described above.
 
 The photographs show the author's real apparatus. Generated visuals are labeled illustrations; research aims, implemented capabilities, and measured results are distinguished throughout.
+
