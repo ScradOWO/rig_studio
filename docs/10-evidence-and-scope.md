@@ -17,11 +17,29 @@ This map keeps the portfolio claims tied to the available repository evidence.
 | Research questions and species/age scope | Author-supplied project description | Experimental aims, not completed biological findings |
 | Projector below coated trough; RG830 filters | Author clarification and apparatus photographs | Physical arrangement; filter material and coating are not characterized quantitatively by these photos |
 
+## The 2K/native capture profile
+
+The saved August 2026 calibration and the accompanying acquisition notes use
+the native/2K camera family with per-camera crops, not the older Mode2 table in
+`configs/rig.yaml`:
+
+| Camera(s) | View | Recorded image (W × H) | Calibration evidence |
+|---|---|---:|---|
+| cam0, cam3 | overhead | 1472 × 1450 | `image_hw: [1450, 1472]` |
+| cam1, cam2 | overhead | 2048 × 1450 | `image_hw: [1450, 2048]` |
+| cam4, cam5 | end/side | 2048 × 1408 | side-camera nominal intrinsics use `cx=1024`, `cy=704` |
+
+These are the dimensions used for the calibration geometry and the documented
+15,975,168-byte Mono8 frame-set payload. The repository does not preserve a
+per-trial SpinView snapshot with the exact `OffsetX`/`OffsetY` values for this
+capture, so those offsets should not be reconstructed from the older Mode2
+preset or guessed from the calibration matrix.
+
 ## Configuration is not a substitute for trial metadata
 
-The committed `configs/rig.yaml` retains earlier Mode2 ROI presets and a nominal recording-rate value of 178 Hz, alongside the current 120 Hz trigger setting. The calibration report describes larger full-resolution crops. The README's image-payload calculation refers to those documented crops, not to every possible preset in the YAML.
+The committed `configs/rig.yaml` retains earlier Mode2 ROI presets and a nominal recording-rate value of 178 Hz, alongside the current 120 Hz trigger setting. The calibration report describes the 2K/native crops above. The README's image-payload calculation refers to those documented crops, not to every possible preset in the YAML.
 
-`apply_profile_on_connect: false` means connection adopts the cameras' current imaging settings; loading the preset is a separate action. Reproduce an instrument trial from its actual camera state and metadata, and validate calibration after changes. No configuration values were edited in this documentation refresh.
+`apply_profile_on_connect: false` means connection adopts the cameras' current imaging settings; loading the preset is a separate action. Reproduce an instrument trial from its actual camera state and metadata, and validate calibration after changes. No hardware ROI values were changed in this documentation refresh; only the comments were clarified.
 
 ## Coordinate convention
 
@@ -43,3 +61,4 @@ Existing application, native, calibration, configuration, and test files were pr
 The full application test suite requires dependencies not present in the documentation-rendering environment and was not run as part of this refresh. Historical test-count statements elsewhere in the notes refer to the original project environment.
 
 Four existing numerical regression cases were also executed directly from their unchanged test definitions: exact DLT recovery, four-view majority outlier rejection, ambiguous three-view retention, and two-view retention. This direct execution avoids the unavailable pytest/HDF5 imports and is not a full pytest run. All four passed.
+
